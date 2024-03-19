@@ -1,10 +1,10 @@
 package com.handelika.weathercasestudy.apiservice
 
+import com.handelika.weathercasestudy.const.Constants.BASE_URL
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    private const val BASE_URL = "http://api.worldweatheronline.com/premium/v1/weather.ashx/"
 
     val retrofit: Retrofit by lazy {
         Retrofit.Builder()

@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">WeatherCaseStudy</string>
+    <string name="degree_sign">°</string>
+    <string name="lowest_degree">En Düşük</string>
+    <string name="highest_degree">En Yüksek</string>
+
 </resources>
