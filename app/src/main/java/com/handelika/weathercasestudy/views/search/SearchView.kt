@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Card
@@ -24,6 +25,7 @@ import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -35,7 +37,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.handelika.weathercasestudy.models.WeatherData
 import com.handelika.weathercasestudy.navigation.WeatherNavigationEnum
 import com.handelika.weathercasestudy.ui.theme.Blue200
 import com.handelika.weathercasestudy.ui.theme.Blue500
@@ -46,15 +50,17 @@ import com.handelika.weathercasestudy.utils.TextWidget
 import com.handelika.weathercasestudy.utils.getStringRes
 
 @Composable
-fun SearchView(navController: NavController) {
+fun SearchView(navController: NavController, searchViewModel: SearchViewModel = viewModel()
+)  {
 
-    val searchViewModel = SearchViewModel()
 
     Surface(
         modifier = Modifier
             .fillMaxSize(),
         color = Blue700
     ) {
+
+        WeatherApp(searchViewModel)
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -77,8 +83,18 @@ fun SearchView(navController: NavController) {
 }
 
 @Composable
-fun GetList(searchViewModel: SearchViewModel, navController: NavController) {
+fun WeatherApp(searchViewModel: SearchViewModel = viewModel()){
+    val weatherList = searchViewModel.getList()
+
+}
+
+@Composable
+fun GetList(
+    searchViewModel: SearchViewModel,
+    navController: NavController
+) {
     LazyColumn(
+        state = rememberLazyListState(),
         modifier = Modifier
             .padding(top = 30.dp)
             .fillMaxWidth(),
@@ -92,42 +108,71 @@ fun GetList(searchViewModel: SearchViewModel, navController: NavController) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Card(
-                    modifier = Modifier
-                        .padding(5.dp)
-                        .fillParentMaxWidth(.9F)
-                        .clickable(
-                            onClick = {
-                                navController.navigate("${WeatherNavigationEnum.MainScreen.name}/${data.data!!.request!!.first()!!.query}")
-                            }
-                        ),
-                    backgroundColor = Blue500
-                ) {
-                    Box(
-                        modifier = Modifier.padding(10.dp)
-                    ) {
-                        TextWidget(
-                            data = data.data!!.request!!.first()!!.query.toString(),
-                            textStyle = TextStyle(fontSize = 18.sp)
-                        )
-                    }
-                }
 
-                IconButton(onClick = {
-                    searchViewModel.removeData(index = index)
-                }) {
-                    Box(
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            tint = White,
-                            contentDescription = "Delete",
-                            modifier = Modifier.size(30.dp)
-                        )
-                    }
-                }
+                //Text Card
+                CardItem(data = data.data!!.request!!.first()!!,
+                    navController = navController)
+
+                //Delete button
+                DeleteItemWidget(
+                    searchViewModel,
+                    index
+                )
             }
+        }
+    }
+}
+
+@Composable
+private fun DeleteItemWidget(
+    searchViewModel: SearchViewModel,
+    index: Int,
+
+    ) {
+
+    IconButton(onClick = {
+        searchViewModel.removeData(index = index)
+    }) {
+        Box(
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                tint = White,
+                contentDescription = "Delete",
+                modifier = Modifier.size(30.dp)
+            )
+        }
+    }
+
+
+}
+
+@Composable
+private fun CardItem(
+    navController: NavController,
+    data: WeatherData.Data.Request?
+) {
+
+    Card(
+        modifier = Modifier
+            .padding(5.dp)
+            .fillMaxWidth(.9F)
+            .clickable(
+                onClick = {
+                    navController.saveState()
+                    navController.navigate("${WeatherNavigationEnum.MainScreen.name}/${data!!.query}")
+                }
+            ),
+        backgroundColor = Blue500
+    ) {
+        Box(
+            modifier = Modifier.padding(10.dp)
+        ) {
+            TextWidget(
+                data = data!!.query!!,
+                textStyle = TextStyle(fontSize = 18.sp)
+            )
         }
     }
 }
@@ -159,7 +204,6 @@ fun SearchText(searchViewModel: SearchViewModel) {
                 }
             }
         }
-
     }
 }
 
@@ -174,7 +218,7 @@ fun CustomTextField(searchViewModel: SearchViewModel) {
     val softwareKeyboardController = LocalSoftwareKeyboardController.current
 
     TextField(
-        colors =  TextFieldDefaults.textFieldColors(
+        colors = TextFieldDefaults.textFieldColors(
             textColor = White,
             placeholderColor = Blue200,
             disabledLabelColor = Orange200,

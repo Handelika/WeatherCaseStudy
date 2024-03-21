@@ -11,17 +11,21 @@ import com.handelika.weathercasestudy.views.search.SearchView
 
 @Composable
 fun WeatherNavigation(navController: NavHostController) {
+    navController.saveState()
 
     NavHost(
         navController = navController,
         startDestination = WeatherNavigationEnum.SearchScreen.name
     ) {
+
         composable(WeatherNavigationEnum.SearchScreen.name) {
             SearchView(navController)
         }
 
         val route = WeatherNavigationEnum.MainScreen.name
-        composable("$route/{query}",
+        composable(
+
+            "$route/{query}",
             arguments = listOf(
                 navArgument(name = "query"){
                     type = NavType.StringType

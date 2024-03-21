@@ -1,12 +1,14 @@
 package com.handelika.weathercasestudy.views.search
 
 import android.util.Log
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.handelika.weathercasestudy.apiservice.ApiClient
 import com.handelika.weathercasestudy.data.DataMode
 import com.handelika.weathercasestudy.models.WeatherData
@@ -28,10 +30,13 @@ class SearchViewModel : ViewModel(){
     val weather: State<WeatherData> = _weather
 
     private val _weatherList = mutableStateListOf<WeatherData>()
-    val savedWeatherList = MutableStateFlow(_weatherList)
     val weatherList: List<WeatherData> = _weatherList
 
-    fun getWeatherData(query:String) {
+    init {
+        _weatherList.addAll(getList())
+    }
+
+    private fun getWeatherData(query:String) {
 
         _datamode.value.loading = true
 
@@ -88,7 +93,6 @@ class SearchViewModel : ViewModel(){
             //clearing texts after adding
             _weather.value = WeatherData()
             _textState.value = ""
-            Log.d("weatherdata saved", savedWeatherList.value.size.toString())
 
         }
     }
@@ -108,5 +112,18 @@ class SearchViewModel : ViewModel(){
         }
 
     }
+
+   fun getList () : List<WeatherData> {
+        return weatherList
+    }
+
+
+    //Handling back button
+    val backPressedEvent = MutableStateFlow<Boolean>(false)
+
+    fun onBackPressed() {
+        backPressedEvent.value = false
+    }
+
 }
 
