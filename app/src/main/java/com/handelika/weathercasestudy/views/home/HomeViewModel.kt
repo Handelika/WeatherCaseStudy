@@ -32,7 +32,7 @@ class HomeViewModel : ViewModel() {
             ) {
                 if (response.isSuccessful) {
 
-                    // Başarılı cevap durumunda kullanıcı verisini işleyin
+                    // success response
                     if (response.body() != null) {
                         Log.d("weatherdata query", query)
 
@@ -40,22 +40,22 @@ class HomeViewModel : ViewModel() {
                         _weather.value = response.body()!!
                         _isLoading.value = false
                     } else {
-                        _isLoading.value = false
+                        //error
+                        _isLoading.value = true
                     }
                 } else {
-                    // Başarısız cevap durumunda hata mesajı gösterin
+                    // response error
                     println("weather_error: Kod: ${response.code()}")
                     _isLoading.value = true
                 }
             }
 
             override fun onFailure(call: Call<WeatherData>, t: Throwable) {
-                // İstek gönderilirken bir hata oluşursa hata mesajı gösterin
+                // response fail
                 println("weather_failure: ${t.message}")
                 _isLoading.value = true
 
             }
         })
-
     }
 }
