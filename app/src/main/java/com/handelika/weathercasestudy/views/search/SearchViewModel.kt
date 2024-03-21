@@ -1,29 +1,27 @@
 package com.handelika.weathercasestudy.views.search
 
 import android.util.Log
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.handelika.weathercasestudy.apiservice.ApiClient
 import com.handelika.weathercasestudy.data.DataMode
 import com.handelika.weathercasestudy.models.WeatherData
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class SearchViewModel : ViewModel(){
+class SearchViewModel : ViewModel() {
 
-   private val _textState = mutableStateOf("")
-    val textState : State<String> = _textState
+    private val _textState = mutableStateOf("")
+    val textState: State<String> = _textState
 
-    var _datamode: MutableState<DataMode<WeatherData, Boolean, Throwable>> = mutableStateOf(value = DataMode(loading = false))
+    var _datamode: MutableState<DataMode<WeatherData, Boolean, Throwable>> =
+        mutableStateOf(value = DataMode(loading = false))
     var data: State<DataMode<WeatherData, Boolean, Throwable>> = _datamode
 
     private val _weather = mutableStateOf(WeatherData())
@@ -36,7 +34,7 @@ class SearchViewModel : ViewModel(){
         _weatherList.addAll(getList())
     }
 
-    private fun getWeatherData(query:String) {
+    private fun getWeatherData(query: String) {
 
         _datamode.value.loading = true
 
@@ -78,15 +76,15 @@ class SearchViewModel : ViewModel(){
 
     }
 
-    fun searchData(){
+    fun searchData() {
         viewModelScope.launch {
-            if(_weather.value.data != null && !_weather.value.data!!.request.isNullOrEmpty()){
+            if (_weather.value.data != null && !_weather.value.data!!.request.isNullOrEmpty()) {
                 _textState.value = _weather.value.data!!.request!!.first()!!.query!!
             }
         }
     }
 
-    fun addData(){
+    fun addData() {
         viewModelScope.launch {
             _weatherList.add(_weather.value)
 
@@ -97,7 +95,7 @@ class SearchViewModel : ViewModel(){
         }
     }
 
-    fun removeData(index :Int){
+    fun removeData(index: Int) {
         viewModelScope.launch {
             _weatherList.remove(_weatherList[index])
         }
@@ -113,17 +111,8 @@ class SearchViewModel : ViewModel(){
 
     }
 
-   fun getList () : List<WeatherData> {
+    fun getList(): List<WeatherData> {
         return weatherList
     }
-
-
-    //Handling back button
-    val backPressedEvent = MutableStateFlow<Boolean>(false)
-
-    fun onBackPressed() {
-        backPressedEvent.value = false
-    }
-
 }
 
