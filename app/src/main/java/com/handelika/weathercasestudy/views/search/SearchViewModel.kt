@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.handelika.weathercasestudy.apiservice.ApiClient
 import com.handelika.weathercasestudy.data.DataMode
 import com.handelika.weathercasestudy.models.WeatherData
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
@@ -27,6 +28,7 @@ class SearchViewModel : ViewModel(){
     val weather: State<WeatherData> = _weather
 
     private val _weatherList = mutableStateListOf<WeatherData>()
+    val savedWeatherList = MutableStateFlow(_weatherList)
     val weatherList: List<WeatherData> = _weatherList
 
     fun getWeatherData(query:String) {
@@ -44,7 +46,7 @@ class SearchViewModel : ViewModel(){
                 response: Response<WeatherData>
             ) {
                 if (response.isSuccessful) {
-                    Log.d("weatherdata", "${response.body()!!.data}")
+                    Log.d("weatherdata res", "${response.body()!!.data}")
 
                     // Başarılı cevap durumunda kullanıcı verisini işleyin
                     if (response.body() != null) {
@@ -74,7 +76,6 @@ class SearchViewModel : ViewModel(){
     fun searchData(){
         viewModelScope.launch {
             if(_weather.value.data != null && !_weather.value.data!!.request.isNullOrEmpty()){
-                Log.d("weatherdata query", _weather.value.data!!.request!!.first()!!.query!!)
                 _textState.value = _weather.value.data!!.request!!.first()!!.query!!
             }
         }
@@ -87,6 +88,8 @@ class SearchViewModel : ViewModel(){
             //clearing texts after adding
             _weather.value = WeatherData()
             _textState.value = ""
+            Log.d("weatherdata saved", savedWeatherList.value.size.toString())
+
         }
     }
 

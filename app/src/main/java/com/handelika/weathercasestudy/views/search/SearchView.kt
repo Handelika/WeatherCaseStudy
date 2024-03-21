@@ -1,6 +1,7 @@
 package com.handelika.weathercasestudy.views.search
 
 import SpacerUtils
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +36,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.handelika.weathercasestudy.navigation.WeatherNavigationEnum
 import com.handelika.weathercasestudy.ui.theme.Blue200
 import com.handelika.weathercasestudy.ui.theme.Blue500
 import com.handelika.weathercasestudy.ui.theme.Blue700
@@ -68,14 +70,14 @@ fun SearchView(navController: NavController) {
             //Search results
             SearchText(searchViewModel)
 
-            GetList(searchViewModel = searchViewModel)
+            GetList(searchViewModel = searchViewModel, navController = navController)
 
         }
     }
 }
 
 @Composable
-fun GetList(searchViewModel: SearchViewModel) {
+fun GetList(searchViewModel: SearchViewModel, navController: NavController) {
     LazyColumn(
         modifier = Modifier
             .padding(top = 30.dp)
@@ -93,7 +95,12 @@ fun GetList(searchViewModel: SearchViewModel) {
                 Card(
                     modifier = Modifier
                         .padding(5.dp)
-                        .fillParentMaxWidth(.9F),
+                        .fillParentMaxWidth(.9F)
+                        .clickable(
+                            onClick = {
+                                navController.navigate("${WeatherNavigationEnum.MainScreen.name}/${data.data!!.request!!.first()!!.query}")
+                            }
+                        ),
                     backgroundColor = Blue500
                 ) {
                     Box(

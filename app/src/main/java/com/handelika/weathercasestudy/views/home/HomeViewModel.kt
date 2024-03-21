@@ -1,8 +1,6 @@
 package com.handelika.weathercasestudy.views.home
 
 import android.util.Log
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -17,16 +15,14 @@ class HomeViewModel : ViewModel() {
     private val _weather = mutableStateOf(WeatherData())
     val weather: State<WeatherData> = _weather
 
-
-//    var datamode: MutableState<DataMode<ForecastDataResponse, Boolean, Exception>> = mutableStateOf(value = DataMode(loading = false))
-//     var data: State<DataMode<ForecastDataResponse, Boolean, Exception>> = datamode
-
     private val _isLoading = mutableStateOf(true)
     val isLoading: State<Boolean> = _isLoading
 
-     fun getWeatherData(locationName: String) {
+    fun getWeatherData(query: String) {
+        _isLoading.value = true
+
         val call: Call<WeatherData> = ApiClient.apiService.getForecast(
-            num_of_days = 5, q = locationName
+            num_of_days = 5, q = query
         )
 
         call.enqueue(object : Callback<WeatherData> {
@@ -35,15 +31,16 @@ class HomeViewModel : ViewModel() {
                 response: Response<WeatherData>
             ) {
                 if (response.isSuccessful) {
-                    Log.d("weatherdata", "${response.body()!!.data}")
 
                     // Başarılı cevap durumunda kullanıcı verisini işleyin
                     if (response.body() != null) {
+                        Log.d("weatherdata query", query)
+
+                        Log.d("weatherdata res", response.body().toString())
                         _weather.value = response.body()!!
-                        _weather.value = weather.value
                         _isLoading.value = false
                     } else {
-                        _isLoading.value = true
+                        _isLoading.value = false
                     }
                 } else {
                     // Başarısız cevap durumunda hata mesajı gösterin
@@ -61,20 +58,4 @@ class HomeViewModel : ViewModel() {
         })
 
     }
-
-    @Composable
-    fun FetchData() {
-
-        LaunchedEffect(true) {
-//        withContext(Dispatchers.IO) {
-//        }
-            _isLoading.value = true
-            getWeatherData("İstanbul")
-
-            kotlinx.coroutines.delay(3000L)
-            _isLoading.value = false
-
-        }
-    }
-
 }

@@ -2,7 +2,6 @@ package com.handelika.weathercasestudy.views.home
 
 import SpacerUtils
 import android.content.Context
-import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -34,8 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.handelika.weathercasestudy.models.WeatherData
-import com.handelika.weathercasestudy.navigation.WeatherNavigation
-import com.handelika.weathercasestudy.navigation.WeatherNavigationEnum
 import com.handelika.weathercasestudy.ui.theme.Blue500
 import com.handelika.weathercasestudy.ui.theme.Blue700
 import com.handelika.weathercasestudy.ui.theme.White
@@ -46,25 +43,25 @@ import com.handelika.weathercasestudy.utils.formatDate
 import com.handelika.weathercasestudy.utils.getStringRes
 
 @Composable
-fun HomeView(navController: NavController) {
+fun HomeView(navController: NavController, query: String?) {
 
     val homeViewModel = HomeViewModel()
+    homeViewModel.getWeatherData(query = query!!)
 
     Surface(
         modifier = Modifier
             .fillMaxSize(),
         color = Blue700
     ) {
+
         GetData(homeViewModel = homeViewModel, navController = navController)
 
     }
-
 }
 
 @Composable
 fun GetData(homeViewModel: HomeViewModel, navController: NavController) {
-
-    homeViewModel.FetchData()
+    val context = LocalContext.current
 
     if (homeViewModel.isLoading.value) {
 
@@ -72,98 +69,104 @@ fun GetData(homeViewModel: HomeViewModel, navController: NavController) {
         LoadingIndicator()
 
     } else {
-        Log.d("weatherdata", homeViewModel.weather.value.data.toString())
-        val context = LocalContext.current
 
-        Column (
-            modifier = Modifier
-                .padding(top = 30.dp),
-            horizontalAlignment = Alignment.End
-        ){
+        if (homeViewModel.weather.value.data != null) {
+            Log.d("weatherdata data", homeViewModel.weather.value.data!!.request.toString())
 
-            IconButton(
-                modifier = Modifier.padding(end = 10.dp),
-                onClick = {
-
-                  navController.navigate(WeatherNavigationEnum.SearchScreen.name)
-                }
-            ) {
-
-                Box(
-                    contentAlignment = Alignment.CenterEnd
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        tint = White,
-                        contentDescription = "Search",
-                        modifier = Modifier.size(48.dp)
-                    )
-                }
-            }
-
-            Card(
+            Column(
                 modifier = Modifier
-                    .padding(5.dp),
-                shape = RoundedCornerShape(8.dp),
-                elevation = 5.dp,
+                    .padding(top = 30.dp),
+                horizontalAlignment = Alignment.End
             ) {
-                Box(
-                    modifier = Modifier
-                        .background(color = Blue500.copy(alpha = 0.7f))
-                        .fillMaxWidth()
-                        .height(150.dp)
-                        .padding(5.dp),
-                    contentAlignment = Alignment.Center
+
+                IconButton(
+                    modifier = Modifier.padding(end = 10.dp),
+                    onClick = {
+
+                        //                  navController.navigate(WeatherNavigationEnum.SearchScreen.name)
+                        navController.popBackStack()
+                    }
                 ) {
 
-                    val data = homeViewModel.weather.value.data
-
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.SpaceBetween
+                    Box(
+                        contentAlignment = Alignment.CenterEnd
                     ) {
-                        TextWidget(
-                            data = data!!.request!![0]!!.query!!,
-                            textStyle = TextStyle(fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            tint = White,
+                            contentDescription = "Search",
+                            modifier = Modifier.size(48.dp)
                         )
-                        SpacerUtils(10.dp)
-                        Log.d("weatherdata", data.toString())
-                        if (data.current_condition!!.isNotEmpty()) {
+                    }
+                }
 
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                verticalAlignment = Alignment.CenterVertically
+                Card(
+                    modifier = Modifier
+                        .padding(5.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = 5.dp,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .background(color = Blue500.copy(alpha = 0.7f))
+                            .fillMaxWidth()
+                            .height(150.dp)
+                            .padding(5.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
 
-                            ) {
-                                NetworkImage(
-                                    url = data.current_condition.first()!!.weatherIconUrl!!.first()!!.value!!,
-                                    context
+                        val data = homeViewModel.weather.value.data!!
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            TextWidget(
+                                data = data.request!![0]!!.query!!,
+                                textStyle = TextStyle(
+                                    fontSize = 25.sp,
+                                    fontWeight = FontWeight.Bold
                                 )
-                                SpacerUtils(dp = 10.dp)
-                                TextWidget(
-                                    data = "${data.current_condition.first()!!.temp_C}${
-                                        context.getStringRes(
-                                            "degree_sign"
-                                        )
-                                    }",
-                                    textStyle = TextStyle(
-                                        fontSize = 25.sp,
-                                        fontWeight = FontWeight.Normal
+                            )
+                            SpacerUtils(10.dp)
+                            Log.d("weatherdata ui", data.toString())
+                            if (data.current_condition!!.isNotEmpty()) {
+
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceEvenly,
+                                    verticalAlignment = Alignment.CenterVertically
+
+                                ) {
+                                    NetworkImage(
+                                        url = data.current_condition.first()!!.weatherIconUrl!!.first()!!.value!!,
+                                        context
                                     )
-                                )
+                                    SpacerUtils(dp = 10.dp)
+                                    TextWidget(
+                                        data = "${data.current_condition.first()!!.temp_C}${
+                                            context.getStringRes(
+                                                "degree_sign"
+                                            )
+                                        }",
+                                        textStyle = TextStyle(
+                                            fontSize = 25.sp,
+                                            fontWeight = FontWeight.Normal
+                                        )
+                                    )
+                                }
                             }
                         }
                     }
                 }
+
+
+                //get list
+                GetList(homeViewModel.weather.value.data!!.weather, context)
             }
-
-
-            //get list
-            GetList(homeViewModel.weather.value.data!!.weather, context)
         }
-
-
     }
+
+
 }
 
 @Composable

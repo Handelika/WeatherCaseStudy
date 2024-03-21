@@ -2,8 +2,10 @@ package com.handelika.weathercasestudy.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.handelika.weathercasestudy.views.home.HomeView
 import com.handelika.weathercasestudy.views.search.SearchView
 
@@ -12,15 +14,27 @@ fun WeatherNavigation(navController: NavHostController) {
 
     NavHost(
         navController = navController,
-        startDestination = WeatherNavigationEnum.MainScreen.name
+        startDestination = WeatherNavigationEnum.SearchScreen.name
     ) {
-        composable(WeatherNavigationEnum.MainScreen.name) {
-            HomeView(navController)
-        }
-
         composable(WeatherNavigationEnum.SearchScreen.name) {
             SearchView(navController)
         }
+
+        val route = WeatherNavigationEnum.MainScreen.name
+        composable("$route/{query}",
+            arguments = listOf(
+                navArgument(name = "query"){
+                    type = NavType.StringType
+                })) { navBack ->
+            navBack.arguments?.getString("query").let { query ->
+
+                HomeView(
+                    navController = navController,
+                    query = query
+                )
+            }
+        }
+
     }
 
 
