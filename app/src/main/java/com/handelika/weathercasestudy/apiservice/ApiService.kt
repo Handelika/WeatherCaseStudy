@@ -4,13 +4,9 @@ import com.handelika.weathercasestudy.const.Constants.API_KEY
 import com.handelika.weathercasestudy.models.WeatherData
 import retrofit2.Call
 import retrofit2.http.GET
-import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
-
-    @GET("posts/{id}")
-    fun getPostById(@Path("id") postId: Int): Call<GET>
 
     //get weather data
     @GET("weather.ashx")
