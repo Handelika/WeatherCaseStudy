@@ -3,5 +3,7 @@
     <string name="degree_sign">°</string>
     <string name="lowest_degree">En Düşük</string>
     <string name="highest_degree">En Yüksek</string>
+    <string name="search">Arama</string>
+    <string name="search_desc">Lokasyon giriniz..</string>
 
 </resources>

@@ -1,7 +1,8 @@
 package com.handelika.weathercasestudy.views.home
 
-import android.annotation.SuppressLint
+import SpacerUtils
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -10,54 +11,58 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Surface
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import coil.ImageLoader
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import com.handelika.weathercasestudy.R
-import com.handelika.weathercasestudy.models.WeatherElement
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.handelika.weathercasestudy.models.WeatherData
+import com.handelika.weathercasestudy.navigation.WeatherNavigation
+import com.handelika.weathercasestudy.navigation.WeatherNavigationEnum
 import com.handelika.weathercasestudy.ui.theme.Blue500
 import com.handelika.weathercasestudy.ui.theme.Blue700
+import com.handelika.weathercasestudy.ui.theme.White
 import com.handelika.weathercasestudy.utils.LoadingIndicator
+import com.handelika.weathercasestudy.utils.NetworkImage
 import com.handelika.weathercasestudy.utils.TextWidget
 import com.handelika.weathercasestudy.utils.formatDate
 import com.handelika.weathercasestudy.utils.getStringRes
 
-@SuppressLint("UnrememberedMutableState")
 @Composable
-fun HomeView() {
+fun HomeView(navController: NavController) {
 
-    var homeViewModel = HomeViewModel()
+    val homeViewModel = HomeViewModel()
 
     Surface(
         modifier = Modifier
             .fillMaxSize(),
         color = Blue700
     ) {
-
-        GetData(homeViewModel = homeViewModel)
+        GetData(homeViewModel = homeViewModel, navController = navController)
 
     }
 
 }
 
 @Composable
-fun GetData(homeViewModel: HomeViewModel) {
+fun GetData(homeViewModel: HomeViewModel, navController: NavController) {
 
     homeViewModel.FetchData()
 
@@ -70,12 +75,35 @@ fun GetData(homeViewModel: HomeViewModel) {
         Log.d("weatherdata", homeViewModel.weather.value.data.toString())
         val context = LocalContext.current
 
-        Column {
+        Column (
+            modifier = Modifier
+                .padding(top = 30.dp),
+            horizontalAlignment = Alignment.End
+        ){
+
+            IconButton(
+                modifier = Modifier.padding(end = 10.dp),
+                onClick = {
+
+                  navController.navigate(WeatherNavigationEnum.SearchScreen.name)
+                }
+            ) {
+
+                Box(
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        tint = White,
+                        contentDescription = "Search",
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
+            }
 
             Card(
                 modifier = Modifier
-                    .padding(10.dp)
-                    .padding(top = 30.dp),
+                    .padding(5.dp),
                 shape = RoundedCornerShape(8.dp),
                 elevation = 5.dp,
             ) {
@@ -83,31 +111,55 @@ fun GetData(homeViewModel: HomeViewModel) {
                     modifier = Modifier
                         .background(color = Blue500.copy(alpha = 0.7f))
                         .fillMaxWidth()
-                        .padding(50.dp),
+                        .height(150.dp)
+                        .padding(5.dp),
                     contentAlignment = Alignment.Center
                 ) {
 
                     val data = homeViewModel.weather.value.data
 
-                    Column {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
                         TextWidget(
-                            data = data!!.request!![0].query!!
+                            data = data!!.request!![0]!!.query!!,
+                            textStyle = TextStyle(fontSize = 25.sp, fontWeight = FontWeight.Bold)
                         )
+                        SpacerUtils(10.dp)
+                        Log.d("weatherdata", data.toString())
+                        if (data.current_condition!!.isNotEmpty()) {
 
-                        if (data.currentCondition != null) {
-                            NetworkImage(
-                                url = data.currentCondition[0].weatherIconURL!![0].value!!,
-                                context
-                            )
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                verticalAlignment = Alignment.CenterVertically
+
+                            ) {
+                                NetworkImage(
+                                    url = data.current_condition.first()!!.weatherIconUrl!!.first()!!.value!!,
+                                    context
+                                )
+                                SpacerUtils(dp = 10.dp)
+                                TextWidget(
+                                    data = "${data.current_condition.first()!!.temp_C}${
+                                        context.getStringRes(
+                                            "degree_sign"
+                                        )
+                                    }",
+                                    textStyle = TextStyle(
+                                        fontSize = 25.sp,
+                                        fontWeight = FontWeight.Normal
+                                    )
+                                )
+                            }
                         }
-
                     }
                 }
             }
 
 
             //get list
-            GetList(homeViewModel.weather.value.data!!.weather!!, context)
+            GetList(homeViewModel.weather.value.data!!.weather, context)
         }
 
 
@@ -115,22 +167,22 @@ fun GetData(homeViewModel: HomeViewModel) {
 }
 
 @Composable
-fun GetList(weatherList: List<WeatherElement>, context: Context) {
+fun GetList(weatherList: List<WeatherData.Data.Weather?>?, context: Context) {
 
     LazyColumn(
         modifier = Modifier.padding(30.dp)
     ) {
-        items(count = weatherList.size) { index ->
+        items(count = weatherList!!.size) { index ->
             val data = weatherList[index]
             Log.d("weatherdata", data.toString())
 
-            ListItem(data, context)
+            ListItem(data!!, context)
         }
     }
 }
 
 @Composable
-fun ListItem(data: WeatherElement, context: Context) {
+fun ListItem(data: WeatherData.Data.Weather, context: Context) {
     Card(
         modifier = Modifier
             .padding(10.dp),
@@ -151,55 +203,64 @@ fun ListItem(data: WeatherElement, context: Context) {
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    TextWidget(data = formatDate(data.date!!))
+                    TextWidget(
+                        data = formatDate(data.date!!),
+                        textStyle = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    )
 
                 }
-
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
+                )
+                {
 
-                ) {
-                    TextWidget(
-                        data = "${context.getStringRes("lowest_degree")}\n${data.mintempC!!}${
-                            context.getStringRes(
-                                "degree_sign"
-                            )
-                        }"
-                    )
-                    TextWidget(
-                        data = "${context.getStringRes("highest_degree")}\n${data.maxtempC!!}${
-                            context.getStringRes(
-                                "degree_sign"
-                            )
-                        }"
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+
+                    ) {
+                        TextWidget(
+                            data = context.getStringRes("lowest_degree"),
+                            textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold)
+
+                        )
+
+                        TextWidget(
+                            data = "${data.mintempC}${
+                                context.getStringRes(
+                                    "degree_sign"
+                                )
+                            }",
+                            textStyle = TextStyle(fontSize = 25.sp, fontWeight = FontWeight.Normal)
+                        )
+
+                    }
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        TextWidget(
+                            data = context.getStringRes("highest_degree"),
+                            textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold)
+
+                        )
+
+                        TextWidget(
+                            data = "${data.maxtempC}${
+                                context.getStringRes(
+                                    "degree_sign"
+                                )
+                            }",
+                            textStyle = TextStyle(fontSize = 25.sp, fontWeight = FontWeight.Normal)
+
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-@Composable
-fun NetworkImage(url: String, context: Context) {
 
-    if (url.isNotEmpty()) {
-        AsyncImage(
-            modifier = Modifier
-                .size(50.dp)
-                .clip(CircleShape),
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(url)
-                .crossfade(true)
-                .build(),
-            error = null,
-            imageLoader = ImageLoader(context = context),
-            placeholder = painterResource(R.drawable.ic_launcher_foreground),
-            contentDescription = "stringResource(R.string.description)",
-            contentScale = ContentScale.Crop,
-        )
-    }
-
-}
 
